@@ -57,7 +57,7 @@ def issue_body(rows, status, date):
     if notes:
         lines += ["", "## Notes", ""] + notes
 
-    lines += ["", "_Move rule: percent change of each item's main value (popularity for TMDB, "
+    lines += ["", "_Move rule: percent change of each item's main value (votes for IMDb, "
               "views for Wikipedia) since the source's previous run; the 5 largest moves per "
               "source are listed._"]
     return "\n".join(lines) + "\n"

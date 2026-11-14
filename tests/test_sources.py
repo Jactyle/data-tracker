@@ -1,12 +1,13 @@
+import gzip
 import json
 from datetime import date
 
 import pytest
 
-from tests.helpers import TMDB_RAW, wiki_raw
+from tests.helpers import IMDB_RAW, wiki_raw
 from tracker import http
 from tracker.config import COLUMNS
-from tracker.sources import tmdb, wikipedia
+from tracker.sources import imdb, wikipedia
 
 
 class FakeResponse:
@@ -18,30 +19,40 @@ class FakeResponse:
         return json.loads(self.content)
 
 
-# ---- TMDB conversion -------------------------------------------------------
+# ---- IMDb conversion -------------------------------------------------------
 
-def test_tmdb_convert_gives_common_columns():
-    rows = tmdb.convert(TMDB_RAW, "2026-11-14")
-    assert len(rows) == 3  # the movie without an id is skipped
+def test_imdb_convert_gives_common_columns():
+    rows = imdb.convert(IMDB_RAW, "2026-11-14")
+    assert len(rows) == 4
     assert all(list(row) == COLUMNS for row in rows)
-    alpha = rows[0]
-    assert alpha["date"] == "2026-11-14"
-    assert alpha["item_id"] == "tmdb:101"
-    assert alpha["item"] == "Alpha"
-    assert alpha["source"] == "tmdb"
-    assert alpha["popularity"] == 100.5
-    assert alpha["vote_average"] == 7.5
-    assert alpha["vote_count"] == 1200
-    assert alpha["release_year"] == 2026
-    assert alpha["original_language"] == "en"
-    assert alpha["views"] is None and alpha["views_7d"] is None
+    avatar = rows[0]
+    assert avatar["date"] == "2026-11-14"
+    assert avatar["item_id"] == "imdb:tt1757678"
+    assert avatar["item"] == "Avatar: Fire and Ash"
+    assert avatar["source"] == "imdb"
+    assert avatar["rating"] == 7.2
+    assert avatar["votes"] == 218842
+    assert avatar["release_year"] == 2025
+    assert avatar["views"] is None and avatar["views_7d"] is None
 
 
-def test_tmdb_convert_leaves_missing_values_empty():
-    rows = {row["item_id"]: row for row in tmdb.convert(TMDB_RAW, "2026-11-14")}
-    assert rows["tmdb:102"]["release_year"] is None  # empty release date
-    assert rows["tmdb:103"]["item"] == "Gamma Original"  # falls back to original_title
-    assert rows["tmdb:103"]["popularity"] is None
+def test_imdb_convert_leaves_missing_values_empty():
+    rows = {row["item_id"]: row for row in imdb.convert(IMDB_RAW, "2026-11-14")}
+    assert rows["imdb:tt12042730"]["rating"] is None  # IMDb wrote \N
+    assert rows["imdb:tt12042730"]["votes"] is None
+    assert rows["imdb:tt9999999"]["item"] == "tt9999999"  # an id outside the list keeps its id as name
+    assert rows["imdb:tt9999999"]["release_year"] is None
+
+
+def test_imdb_convert_rejects_a_file_that_is_not_the_ratings_file():
+    with pytest.raises(ValueError):
+        imdb.convert(b"<html>not a tsv</html>", "2026-11-14")
+
+
+def test_imdb_film_list_is_consistent():
+    ids = [tconst for tconst, _title, _year in imdb.FILMS]
+    assert len(ids) == len(set(ids)) >= 10  # the outline asks for at least ten items
+    assert all(i.startswith("tt") for i in ids)
 
 
 # ---- Wikipedia conversion --------------------------------------------------
@@ -56,7 +67,7 @@ def test_wikipedia_convert_views_and_week():
     assert row["views"] == 30
     assert row["views_7d"] == 60  # 20261106 is outside the 7 days
     assert row["release_year"] == 2010 and row["original_language"] == "en"
-    assert row["popularity"] is None
+    assert row["rating"] is None and row["votes"] is None
 
 
 def test_wikipedia_missing_day_counts_as_zero():
@@ -82,30 +93,47 @@ def test_wikipedia_unknown_article_still_converts():
 
 # ---- Fetching --------------------------------------------------------------
 
-def test_tmdb_fetch_without_key_fails(monkeypatch):
-    monkeypatch.delenv("TMDB_API_KEY", raising=False)
-    with pytest.raises(http.SourceError, match="TMDB_API_KEY"):
-        tmdb.fetch(date(2026, 11, 14))
+def ratings_file(extra_lines=(), header="tconst\taverageRating\tnumVotes"):
+    """A gzipped ratings file like IMDb's: many titles, two of them tracked."""
+    lines = [header, "tt0000001\t5.7\t2000", "tt1757678\t7.2\t218842", "tt0000002\t5.8\t270",
+             "tt33764258\t8.4\t563721", "tt0000003\t6.5\t2000"] + list(extra_lines)
+    return gzip.compress(("\n".join(lines) + "\n").encode("utf-8"))
 
 
-def test_tmdb_fetch_sends_key_in_header_only(monkeypatch):
-    monkeypatch.setenv("TMDB_API_KEY", "secret-token")
+def test_imdb_fetch_keeps_only_the_tracked_films():
     seen = {}
 
-    def fake_get(url, headers=None, params=None):
-        seen.update(url=url, headers=headers, params=params)
-        return FakeResponse(TMDB_RAW)
+    def fake_get(url, **kwargs):
+        seen["url"] = url
+        return FakeResponse(ratings_file())
 
-    raw = tmdb.fetch(date(2026, 11, 14), get=fake_get)
-    assert raw == TMDB_RAW
-    assert seen["headers"]["Authorization"] == "Bearer secret-token"
-    assert "secret-token" not in seen["url"] and not seen["params"]
+    raw = imdb.fetch(date(2026, 11, 14), get=fake_get)
+    assert seen["url"] == imdb.URL
+    assert raw.decode().splitlines() == ["tconst\taverageRating\tnumVotes",
+                                         "tt1757678\t7.2\t218842", "tt33764258\t8.4\t563721"]
 
 
-def test_tmdb_fetch_rejects_a_response_without_results(monkeypatch):
-    monkeypatch.setenv("TMDB_API_KEY", "x")
-    with pytest.raises(http.SourceError):
-        tmdb.fetch(date(2026, 11, 14), get=lambda *a, **k: FakeResponse({"status_message": "bad"}))
+def test_imdb_fetch_output_is_the_same_each_time():
+    first = imdb.fetch(date(2026, 11, 14), get=lambda url, **k: FakeResponse(ratings_file()))
+    second = imdb.fetch(date(2026, 11, 15), get=lambda url, **k: FakeResponse(ratings_file()))
+    assert first == second
+
+
+def test_imdb_fetch_fails_when_no_tracked_film_is_in_the_file():
+    body = gzip.compress(b"tconst\taverageRating\tnumVotes\ntt0000001\t5.7\t2000\n")
+    with pytest.raises(http.SourceError, match="none of the tracked films"):
+        imdb.fetch(date(2026, 11, 14), get=lambda url, **k: FakeResponse(body))
+
+
+def test_imdb_fetch_fails_on_a_response_that_is_not_gzip():
+    with pytest.raises(http.SourceError, match="gzip"):
+        imdb.fetch(date(2026, 11, 14), get=lambda url, **k: FakeResponse(b"<html>busy</html>"))
+
+
+def test_imdb_fetch_fails_on_unexpected_columns():
+    body = ratings_file(header="id\trating\tvotes")
+    with pytest.raises(http.SourceError, match="unexpected columns"):
+        imdb.fetch(date(2026, 11, 14), get=lambda url, **k: FakeResponse(body))
 
 
 def test_wikipedia_fetch_skips_a_failed_article():

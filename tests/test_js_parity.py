@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.helpers import tmdb_raw, wiki_raw
+from tests.helpers import imdb_raw, wiki_raw
 from tests.test_run import at, sources
 from tracker.config import Paths
 from tracker.moves import compute_report
@@ -31,15 +31,15 @@ def build_history(tmp_path, last_day_wikipedia_fails):
     paths = Paths(tmp_path)
     tricky = 'Beta, the "Sequel"'  # a comma and quotes must survive the CSV round trip
     days = [
-        (14, {1: ("Alpha", 100.0), 2: (tricky, 50.0), 3: ("Zero", 0.0), 4: ("Gone", 9.0)}, 40),
-        (15, {1: ("Alpha", 150.0), 2: (tricky, 25.0), 3: ("Zero", 5.0), 5: ("Fresh", 7.0)}, 50),
-        (17, {1: ("Alpha", 120.0), 2: (tricky, 30.0), 3: ("Zero", 6.0), 5: ("Fresh", 21.0), 6: ("New", 1.0)}, 20),
+        (14, {1: ("Alpha", 100), 2: (tricky, 50), 3: ("Zero", 0), 4: ("Gone", 9)}, 40),
+        (15, {1: ("Alpha", 150), 2: (tricky, 25), 3: ("Zero", 5), 5: ("Fresh", 7)}, 50),
+        (17, {1: ("Alpha", 120), 2: (tricky, 30), 3: ("Zero", 6), 5: ("Fresh", 21), 6: ("New", 1)}, 20),
     ]
     for day, movies, views in days:
         wiki = wiki_raw(Inception={"20261113": views, "20261114": views // 2, "20261116": views * 3})
         if last_day_wikipedia_fails and day == 17:
             wiki = RuntimeError("down")
-        run(at(day), paths, sources(tmdb_raw(movies), wiki))
+        run(at(day), paths, sources(imdb_raw(movies), wiki))
     return paths
 
 

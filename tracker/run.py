@@ -10,7 +10,6 @@ data/source_log.csv.
 """
 from __future__ import annotations
 
-import os
 import sys
 from datetime import datetime, timezone
 
@@ -22,10 +21,8 @@ from .status import build_status, update_source_log, write_status
 
 
 def clean_error(exc):
-    """A short message that never contains a secret."""
-    text = ("%s: %s" % (type(exc).__name__, exc))[:200].replace("\n", " ")
-    secret = os.environ.get("TMDB_API_KEY", "").strip()
-    return text.replace(secret, "***") if secret else text
+    """A short one-line message for the log."""
+    return ("%s: %s" % (type(exc).__name__, exc))[:200].replace("\n", " ")
 
 
 def run(now=None, paths=DEFAULT_PATHS, sources=None):

@@ -131,7 +131,7 @@
 
   function risersSection(app, rows) {
     var list = T.risers(rows);
-    var how = 'For every item with rows on at least two days, take its main value (popularity for TMDB, daily views for Wikipedia) ' +
+    var how = 'For every item with rows on at least two days, take its main value (votes for IMDb, daily views for Wikipedia) ' +
       'on its first and its latest day in history.csv and compute (latest − first) ÷ first × 100. The chart shows the 5 biggest rises and the 5 biggest falls.';
     if (!list.length) {
       return finding(app, 'Nothing can rise or fall until a second day of data arrives',
@@ -183,9 +183,9 @@
   }
 
   function spreadSection(app, rows) {
-    var views = T.latestValues(rows, 'views_7d'), pop = T.latestValues(rows, 'popularity');
+    var views = T.latestValues(rows, 'views_7d'), pop = T.latestValues(rows, 'votes');
     var list = views.length >= 2 ? views : pop;
-    var column = views.length >= 2 ? 'views_7d' : 'popularity';
+    var column = views.length >= 2 ? 'views_7d' : 'votes';
     var how = 'Take each item’s latest row in history.csv, sort by ' + lower(T.LABELS[column]) + ', and divide the largest value by the smallest. ' +
       'The median is the middle value of the sorted list.';
     if (list.length < 2) {
@@ -200,7 +200,7 @@
     var paras = ['Across ' + plural(list.length, 'item') + ', ' + lower(T.LABELS[column]) + ' runs from ' + T.fmt(low.value, column) + ' (' + low.item + ') to ' +
       T.fmt(top.value, column) + ' (' + top.item + '), with a median of ' + T.fmt(mid, column) + '.'];
     if (column === 'views_7d' && pop.length >= 2 && pop[pop.length - 1].value > 0) {
-      paras.push('Among the TMDB items, popularity ranges from ' + T.fmt(pop[pop.length - 1].value, 'popularity') + ' to ' + T.fmt(pop[0].value, 'popularity') +
+      paras.push('Among the IMDb films, vote counts range from ' + T.fmt(pop[pop.length - 1].value, 'votes') + ' to ' + T.fmt(pop[0].value, 'votes') +
         ', a ratio of ' + (pop[0].value / pop[pop.length - 1].value).toFixed(1) + '×.');
     }
     finding(app, heading, paras, how,
@@ -233,25 +233,28 @@
       list.slice(0, 8).map(function (r) { return [r.item, T.sourceLabel(r.source), r.mean.toFixed(1) + '%', String(r.n)]; }));
   }
 
-  function turnoverSection(app, rows) {
-    var list = T.turnover(rows);
-    var how = 'For each source, compare the set of item_ids on a date with the set on that source’s previous date. Items only in the newer set count as entering, ' +
-      'items only in the older set count as leaving. Counts are added across sources for each date.';
+  function growthSection(app, rows) {
+    var list = T.voteGrowth(rows);
+    var how = 'For every item that has a votes value on at least two days, take the votes on its first and its latest day in history.csv, ' +
+      'subtract, and divide by the number of days between them. The chart shows the 10 fastest.';
     if (!list.length) {
-      return finding(app, 'List changes can be counted once a second day arrives', ['Entering and leaving items are found by comparing two days.'], how);
+      return finding(app, 'Vote growth can be measured once a second day arrives',
+        ['Votes added per day need two days of IMDb data to compare.'], how);
     }
-    var added = 0, removed = 0, busiest = list[0];
-    list.forEach(function (d) { added += d.added; removed += d.removed; if (d.added + d.removed > busiest.added + busiest.removed) busiest = d; });
-    finding(app, plural(added, 'item') + ' entered the lists and ' + removed + ' left since the first run',
-      ['Across ' + plural(list.length, 'day') + ' with a comparison, ' + plural(added, 'item') + ' appeared and ' + removed + ' disappeared. The busiest day was ' + busiest.date +
-        ' with ' + busiest.added + ' entering and ' + busiest.removed + ' leaving. The TMDB trending list changes every day; the Wikipedia list is fixed, so it only changes if a download fails.'],
+    function round(v) { return Math.round(v).toLocaleString('en-US'); }
+    var top = list[0], slow = list[list.length - 1], total = 0;
+    list.forEach(function (r) { total += r.perDay; });
+    finding(app, top.item + ' is adding the most IMDb votes: about ' + round(top.perDay) + ' a day',
+      ['From ' + top.firstDate + ' to ' + top.lastDate + ' (' + plural(top.days, 'day') + '), ' + top.item + ' went from ' + T.fmt(top.first, 'votes') + ' to ' +
+        T.fmt(top.last, 'votes') + ' votes. The slowest of the ' + plural(list.length, 'film') + ' is ' + slow.item + ' at about ' + round(slow.perDay) +
+        ' a day, and together the films add about ' + round(total) + ' votes a day.'],
       how,
       function (chart) {
-        Charts.columns(chart, { integer: true, fmt: function (v) { return String(v); }, label: 'Items entering the lists by day',
-          items: list.map(function (d) { return { label: d.date, value: d.added, detail: d.removed + ' left' }; }) });
+        Charts.bars(chart, { fmt: round, label: 'Votes added per day',
+          rows: list.slice(0, 10).map(function (r) { return { label: r.item, value: r.perDay, detail: T.fmt(r.first, 'votes') + ' → ' + T.fmt(r.last, 'votes') + ' over ' + plural(r.days, 'day') }; }) });
       },
-      ['Date', 'Entered', 'Left'],
-      list.map(function (d) { return [d.date, String(d.added), String(d.removed)]; }));
+      ['Film', 'First day', 'Votes then', 'Latest day', 'Votes now', 'Votes per day'],
+      list.slice(0, 10).map(function (r) { return [r.item, r.firstDate, T.fmt(r.first, 'votes'), r.lastDate, T.fmt(r.last, 'votes'), round(r.perDay)]; }));
   }
 
   function render(data, app) {
@@ -266,7 +269,7 @@
     daySection(app, data.rows);
     spreadSection(app, data.rows);
     volatilitySection(app, data.rows);
-    turnoverSection(app, data.rows);
+    growthSection(app, data.rows);
   }
 
   T.start('trends', render);

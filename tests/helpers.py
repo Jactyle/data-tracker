@@ -1,17 +1,30 @@
 """Sample raw files and small builders shared by the tests."""
 import json
 
-TMDB_RAW = json.dumps({
-    "page": 1,
-    "results": [
-        {"id": 101, "title": "Alpha", "popularity": 100.5, "vote_average": 7.5,
-         "vote_count": 1200, "release_date": "2026-05-01", "original_language": "en"},
-        {"id": 102, "title": "Beta, the Sequel", "popularity": 50.0, "vote_average": 6.0,
-         "vote_count": 300, "release_date": "", "original_language": "fr"},
-        {"title": "No id, skipped", "popularity": 1.0},
-        {"id": 103, "original_title": "Gamma Original", "popularity": None},
-    ],
-}).encode("utf-8")
+from tracker.sources import imdb
+
+IMDB_HEADER = "tconst\taverageRating\tnumVotes"
+
+# Real ids from imdb.FILMS, one with missing values (IMDb writes \N) and one that is not tracked.
+IMDB_RAW = (IMDB_HEADER + "\n"
+            "tt1757678\t7.2\t218842\n"
+            "tt33764258\t8.4\t563721\n"
+            "tt12042730\t\\N\t\\N\n"
+            "tt9999999\t5.0\t10\n").encode("utf-8")
+
+
+def imdb_ids(number):
+    """The made-up IMDb id the tests use for film number `number`."""
+    return "tt%07d" % number
+
+
+def imdb_raw(films):
+    """Build a raw IMDb file from {number: (title, votes)} and register each film's title."""
+    lines = [IMDB_HEADER]
+    for number, (title, votes) in films.items():
+        imdb.FILM_INFO[imdb_ids(number)] = (title, 2020)
+        lines.append("%s\t7.0\t%s" % (imdb_ids(number), votes))
+    return ("\n".join(lines) + "\n").encode("utf-8")
 
 
 def wiki_raw(**articles):
@@ -24,12 +37,3 @@ def wiki_raw(**articles):
         },
         "errors": {},
     }).encode("utf-8")
-
-
-def tmdb_raw(movies):
-    """Build a raw TMDB file from {id: (title, popularity)}."""
-    return json.dumps({"results": [
-        {"id": movie_id, "title": title, "popularity": popularity, "vote_average": 7.0,
-         "vote_count": 10, "release_date": "2020-01-01", "original_language": "en"}
-        for movie_id, (title, popularity) in movies.items()
-    ]}).encode("utf-8")

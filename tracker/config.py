@@ -11,9 +11,8 @@ COLUMNS = [
     "item_id",
     "item",
     "source",
-    "popularity",
-    "vote_average",
-    "vote_count",
+    "rating",
+    "votes",
     "views",
     "views_7d",
     "release_year",
@@ -21,11 +20,11 @@ COLUMNS = [
 ]
 
 # Columns that hold numbers a source updates from day to day.
-NUMERIC_COLUMNS = ["popularity", "vote_average", "vote_count", "views", "views_7d"]
+NUMERIC_COLUMNS = ["rating", "votes", "views", "views_7d"]
 
 # The one value per source that the move rule measures.
 MAIN_VALUE = {
-    "tmdb": "popularity",
+    "imdb": "votes",
     "wikipedia": "views",
 }
 

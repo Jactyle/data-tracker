@@ -3,7 +3,7 @@
 For each source that has rows on the run date:
   * the previous run is the latest earlier date with rows from the same source;
   * an item in both days has a move = (new - old) / old * 100 on the source's
-    main value (popularity for TMDB, views for Wikipedia); the old value must
+    main value (votes for IMDb, views for Wikipedia); the old value must
     be above 0 and both values must exist;
   * the 5 items with the largest absolute move are kept from each source;
   * an item only in the run date has appeared, an item only in the previous
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from .config import MAIN_VALUE, TOP_MOVES_PER_SOURCE
+from .config import MAIN_VALUE, NUMERIC_COLUMNS, TOP_MOVES_PER_SOURCE
 
 
 def percent_change(old, new):
@@ -44,7 +44,7 @@ def compute_report(rows, date):
             continue
         previous = max(earlier)
         now, before = days[date], days[previous]
-        column = MAIN_VALUE.get(source, "popularity")
+        column = MAIN_VALUE.get(source, NUMERIC_COLUMNS[0])
 
         for item_id in sorted(set(now) - set(before)):
             report["new"].append({"item_id": item_id, "item": now[item_id]["item"], "source": source})

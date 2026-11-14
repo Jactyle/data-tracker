@@ -11,7 +11,7 @@
     if (!item.prev || item.prev[column] == null || item.row[column] == null) return null;
     var d = item.row[column] - item.prev[column];
     if (d === 0) return el('span', { class: 'delta', text: 'no change' });
-    var text = T.arrow(d) + ' ' + Math.abs(d).toLocaleString('en-US', { maximumFractionDigits: column === 'vote_average' ? 2 : 1 });
+    var text = T.arrow(d) + ' ' + Math.abs(d).toLocaleString('en-US', { maximumFractionDigits: column === 'rating' ? 2 : 1 });
     // Up is shown green and down red, and the arrow carries the direction too.
     return el('span', { class: 'delta ' + (d > 0 ? 'up' : 'down'), text: text });
   }
@@ -60,7 +60,7 @@
     // Biggest moves since the previous run.
     var movesCard = el('div', { class: 'card' }, [el('h2', { text: 'Biggest moves since the previous run' })]);
     if (analysis.moves.length) {
-      movesCard.appendChild(el('p', { class: 'small muted', text: 'Percent change of each item’s main value (popularity for TMDB, daily views for Wikipedia). The 5 largest moves per source.' }));
+      movesCard.appendChild(el('p', { class: 'small muted', text: 'Percent change of each item’s main value (votes for IMDb, daily views for Wikipedia). The 5 largest moves per source.' }));
       var chart = el('div');
       movesCard.appendChild(chart);
       var rows = analysis.moves.map(function (m) {

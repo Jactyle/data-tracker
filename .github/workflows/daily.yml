@@ -30,8 +30,6 @@ jobs:
       - run: pip install -r requirements.txt
 
       - name: Download sources, save raw files, build history and status
-        env:
-          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
         run: python -m tracker.run
 
       - name: Open today's issue and close the previous one

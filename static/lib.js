@@ -6,19 +6,19 @@
 
   var T = {};
 
-  T.NUMERIC = ['popularity', 'vote_average', 'vote_count', 'views', 'views_7d'];
+  T.NUMERIC = ['rating', 'votes', 'views', 'views_7d'];
   T.LABELS = {
-    popularity: 'Popularity', vote_average: 'Rating', vote_count: 'Votes',
+    rating: 'Rating', votes: 'Votes',
     views: 'Daily views', views_7d: '7-day views', release_year: 'Year',
     original_language: 'Language', source: 'Source', item: 'Item'
   };
   // The value the move rule measures for each source (same as tracker/config.py).
-  T.MAIN = { tmdb: 'popularity', wikipedia: 'views' };
-  T.SOURCE_LABELS = { tmdb: 'TMDB', wikipedia: 'Wikipedia' };
+  T.MAIN = { imdb: 'votes', wikipedia: 'views' };
+  T.SOURCE_LABELS = { imdb: 'IMDb', wikipedia: 'Wikipedia' };
   T.TOP_PER_SOURCE = 5;
 
   T.sourceLabel = function (source) { return T.SOURCE_LABELS[source] || source; };
-  T.mainColumn = function (source) { return T.MAIN[source] || 'popularity'; };
+  T.mainColumn = function (source) { return T.MAIN[source] || 'votes'; };
 
   /* ---------- CSV ---------- */
 
@@ -200,21 +200,21 @@
     return out;
   };
 
-  // Per date: how many items appeared in / disappeared from a source's list since its previous date.
-  T.turnover = function (rows) {
-    var bySource = T.group(rows), totals = {};
-    Object.keys(bySource).forEach(function (source) {
-      var days = Object.keys(bySource[source]).sort();
-      for (var d = 1; d < days.length; d++) {
-        var now = bySource[source][days[d]], before = bySource[source][days[d - 1]];
-        var t = totals[days[d]] = totals[days[d]] || { added: 0, removed: 0 };
-        Object.keys(now).forEach(function (id) { if (!before[id]) t.added += 1; });
-        Object.keys(before).forEach(function (id) { if (!now[id]) t.removed += 1; });
-      }
+  // Votes added per day between each item's first and latest row, for items that have votes.
+  T.voteGrowth = function (rows) {
+    var series = T.itemSeries(rows), out = [];
+    Object.keys(series).forEach(function (id) {
+      var pts = series[id].points.filter(function (p) { return p.row.votes != null; });
+      if (pts.length < 2) return;
+      var first = pts[0], last = pts[pts.length - 1];
+      var days = (Date.parse(last.date + 'T00:00:00Z') - Date.parse(first.date + 'T00:00:00Z')) / 86400000;
+      if (days <= 0) return;
+      out.push({ item_id: id, item: series[id].item, source: series[id].source,
+                 firstDate: first.date, lastDate: last.date, first: first.row.votes, last: last.row.votes,
+                 days: days, perDay: (last.row.votes - first.row.votes) / days });
     });
-    return Object.keys(totals).sort().map(function (date) {
-      return { date: date, added: totals[date].added, removed: totals[date].removed };
-    });
+    out.sort(function (a, b) { return b.perDay - a.perDay || (a.item_id < b.item_id ? -1 : 1); });
+    return out;
   };
 
   // Each item's latest row for the given column (only items that have a value), largest first.
@@ -233,7 +233,7 @@
   T.fmt = function (value, column) {
     if (value == null) return '—';
     if (column === 'release_year') return String(value);
-    if (column === 'vote_average') return value.toFixed(1);
+    if (column === 'rating') return value.toFixed(1);
     if (Number.isInteger(value)) return value.toLocaleString('en-US');
     return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
   };
@@ -287,6 +287,18 @@
     sync();
   };
 
+  // The credit line shared by every page.
+  T.renderFooter = function () {
+    var foot = T.el('footer', { class: 'foot small muted' }, [
+      'Ratings and votes: data courtesy of ',
+      T.el('a', { href: 'https://www.imdb.com', text: 'IMDb' }),
+      ', used for personal, non-commercial purposes under ',
+      T.el('a', { href: 'https://developer.imdb.com/non-commercial-datasets/', text: 'IMDb’s non-commercial dataset terms' }),
+      '. Page views: Wikimedia pageviews API.'
+    ]);
+    document.body.appendChild(foot);
+  };
+
   T.registerServiceWorker = function () {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
@@ -310,6 +322,7 @@
   // Frame every page: navigation, service worker, data, and a friendly message when data is missing.
   T.start = function (page, render) {
     T.renderNav(page);
+    T.renderFooter();
     T.registerServiceWorker();
     var app = document.getElementById('app');
     T.loadData().then(function (data) {
