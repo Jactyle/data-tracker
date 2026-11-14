@@ -5,7 +5,6 @@
 Every day, on its own, this tool downloads the latest numbers for a set of movies, adds them to a history with one row per item per day, reports what moved, and publishes the result to a website.
 
 - **Live site:** https://jactyle.github.io/data-tracker/
-- **Repository:** https://github.com/Jactyle/data-tracker
 
 A GitHub Actions workflow runs `python -m tracker.run` once a day. The site is three static pages (Today, Browse, Trends) that load `data/history.csv` and `data/status.json` in the browser and do all calculations there. The site is installable as an app and opens offline with the last data it loaded.
 
