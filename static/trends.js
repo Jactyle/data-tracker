@@ -39,7 +39,18 @@
           .forEach(function (v) { takeSlot(v.item_id); });
       });
     }
-    defaults();
+    // The chosen items are kept in the page address (?items=a,b,c), so the view can be shared.
+    var fromLink = T.parseItemsParam(location.search).filter(function (id) { return series[id]; });
+    if (fromLink.length) {
+      slots = {};
+      fromLink.forEach(takeSlot);
+    } else {
+      defaults();
+    }
+    function remember() {
+      var bySlot = Object.keys(slots).sort(function (a, b) { return slots[a] - slots[b]; });
+      T.replaceQuery(T.formatItemsParam(bySlot));
+    }
 
     var card = el('div', { class: 'card' }, [
       el('h2', { text: 'Every value over the days' }),
@@ -61,8 +72,8 @@
     function drawPicker() {
       picker.textContent = '';
       var buttons = el('div', { class: 'controls' }, [
-        el('button', { type: 'button', text: 'Reset to top items', onclick: function () { defaults(); redraw(); } }),
-        el('button', { type: 'button', text: 'Clear', onclick: function () { slots = {}; redraw(); } })
+        el('button', { type: 'button', text: 'Reset to top items', onclick: function () { defaults(); redraw(true); } }),
+        el('button', { type: 'button', text: 'Clear', onclick: function () { slots = {}; redraw(true); } })
       ]);
       picker.appendChild(buttons);
       var full = selectedIds().length >= MAX;
@@ -75,7 +86,7 @@
           box.disabled = full && !slots[id];
           box.addEventListener('change', function () {
             if (box.checked) takeSlot(id); else delete slots[id];
-            redraw();
+            redraw(true);
           });
           var swatch = el('span', { class: 'swatch' });
           if (slots[id]) { swatch.style.background = Charts.slotVar(slots[id]); swatch.style.borderColor = 'transparent'; }
@@ -109,7 +120,7 @@
       });
     }
 
-    function redraw() { drawPicker(); drawCharts(); }
+    function redraw(changed) { drawPicker(); drawCharts(); if (changed) remember(); }
     redraw();
   }
 

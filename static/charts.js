@@ -47,19 +47,29 @@
 
   /* ---------- shared pieces ---------- */
 
-  // Redraw when the container's width changes (window resize, rotating a phone).
+  // Draw once the container is in the page (so its width is known), then redraw when its
+  // width changes (window resize, rotating a phone).
   C.responsive = function (container, draw) {
     if (container.__observer) container.__observer.disconnect();
     var last = 0;
     function run() { last = container.clientWidth; draw(); }
-    run();
-    if (typeof ResizeObserver !== 'undefined') {
+    function observe() {
+      if (typeof ResizeObserver === 'undefined') return;
       container.__observer = new ResizeObserver(function () {
         // Redraw on the next frame so drawing never triggers the observer in the same frame.
         if (Math.abs(container.clientWidth - last) > 8) requestAnimationFrame(run);
       });
       container.__observer.observe(container);
     }
+    function start(tries) {
+      if (!container.isConnected && tries < 100) {   // the caller has not attached it yet
+        setTimeout(function () { start(tries + 1); }, 20);
+        return;
+      }
+      run();
+      observe();
+    }
+    start(0);
   };
 
   function makeTooltip(container) {
@@ -155,7 +165,7 @@
         if (n > 31 && i !== last) return; // many days: mark only the latest value
         var dot = svg('circle', { cx: X(i), cy: Y(v), r: 4, 'stroke-width': 2 }, el);
         dot.style.fill = C.slotVar(s.slot);
-        dot.style.stroke = 'var(--surface)';
+        dot.style.stroke = 'var(--surface-solid)';
       });
     });
 
@@ -223,12 +233,13 @@
 
     var width = Math.max(container.clientWidth || 600, 260);
     var rowH = 30, barH = 18, top = 6, axisH = 24;
-    var labelW = Math.min(Math.max(width * 0.36, 110), 230);
+    var labelW = Math.min(Math.max(width * 0.36, 110), 290);
     var values = o.rows.map(function (r) { return r.value; });
     var hasNeg = values.some(function (v) { return v < 0; });
     var left = labelW + (hasNeg ? 62 : 8), right = 70;
     var plotW = Math.max(60, width - left - right);
-    var scale = C.niceTicks(Math.min(0, Math.min.apply(null, values)), Math.max(0, Math.max.apply(null, values)), 4);
+    var wanted = Math.max(2, Math.min(4, Math.floor(plotW / 80)));     // fewer ticks on a narrow plot, so the labels do not collide
+    var scale = C.niceTicks(Math.min(0, Math.min.apply(null, values)), Math.max(0, Math.max.apply(null, values)), wanted);
     var d0 = scale.ticks[0], d1 = scale.ticks[scale.ticks.length - 1];
     function X(v) { return left + (v - d0) / (d1 - d0) * plotW; }
     var height = top + o.rows.length * rowH + axisH;
@@ -242,14 +253,14 @@
     svg('line', { class: 'axis', x1: X(0), x2: X(0), y1: top, y2: height - axisH }, el);
 
     var tip = makeTooltip(container);
-    var maxChars = Math.floor((labelW - 12) / 6.6);
+    var maxChars = Math.floor((labelW - 12) / 7.6);   // 12px monospace is about 7.2px per character
     o.rows.forEach(function (r, i) {
       var y = top + i * rowH, by = y + (rowH - barH) / 2;
       var g = svg('g', {}, el);
       var name = svg('text', { class: 't-label', x: labelW - 8, y: y + rowH / 2 + 4, 'text-anchor': 'end' }, g);
       name.textContent = truncate(r.label, maxChars);
       var bar = svg('path', { class: 'mark', d: barPath(X(0), X(r.value), by, barH, 4) }, g);
-      bar.style.fill = r.slot ? C.slotVar(r.slot) : (o.signed && r.value < 0 ? C.slotVar(8) : C.slotVar(1));
+      bar.style.fill = r.slot ? C.slotVar(r.slot) : (o.signed && r.value < 0 ? C.slotVar(8) : 'var(--accent)');
       var dir = r.value >= 0 ? 1 : -1;
       var val = svg('text', { class: 't-value', x: X(r.value) + dir * 6, y: y + rowH / 2 + 4, 'text-anchor': dir > 0 ? 'start' : 'end' }, g);
       val.textContent = o.fmt(r.value);
@@ -303,7 +314,7 @@
           ' H' + (x + bw - rr) + ' A' + rr + ',' + rr + ' 0 0 1 ' + (x + bw) + ',' + (yt + rr) + ' V' + yb + ' Z'
         : '';
       var bar = svg('path', { class: 'mark', d: d }, el);
-      bar.style.fill = C.slotVar(1);
+      bar.style.fill = 'var(--accent)';
       if (band >= 40 && r.value > 0) {
         var v = svg('text', { class: 't-value', x: cx, y: yt - 5, 'text-anchor': 'middle' }, el);
         v.textContent = o.fmt(r.value);

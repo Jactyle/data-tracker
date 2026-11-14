@@ -261,6 +261,140 @@
     return e;
   };
 
+  // A small line icon: an empty 24 x 24 svg, and a helper to add shapes to it.
+  function iconBase() {
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    ['viewBox', '0 0 24 24', 'width', '22', 'height', '22', 'aria-hidden', 'true', 'fill', 'none', 'stroke', 'currentColor',
+     'stroke-width', '2', 'stroke-linecap', 'round', 'stroke-linejoin', 'round'].forEach(function (v, i, all) {
+      if (i % 2 === 0) svg.setAttribute(v, all[i + 1]);
+    });
+    return { svg: svg, add: function (tag, attrs) {
+      var node = document.createElementNS(ns, tag);
+      Object.keys(attrs).forEach(function (k) { node.setAttribute(k, attrs[k]); });
+      svg.appendChild(node);
+    } };
+  }
+
+  // A speaker symbol: with sound waves when the sound is on, with a cross when it is off.
+  T.volumeIcon = function (on) {
+    var icon = iconBase();
+    icon.add('polygon', { points: '3,9 7,9 12,5 12,19 7,15 3,15', fill: 'currentColor' });
+    if (on) {
+      icon.add('path', { d: 'M15.5 9a4 4 0 0 1 0 6' });
+      icon.add('path', { d: 'M18.5 6a8 8 0 0 1 0 12' });
+    } else {
+      icon.add('line', { x1: '16', y1: '9', x2: '22', y2: '15' });
+      icon.add('line', { x1: '22', y1: '9', x2: '16', y2: '15' });
+    }
+    return icon.svg;
+  };
+
+  // A refresh symbol: a circular arrow.
+  T.refreshIcon = function () {
+    var icon = iconBase();
+    icon.add('polyline', { points: '22 4 22 10 16 10' });
+    icon.add('path', { d: 'M19.5 15a8 8 0 1 1-1.9-8.3L22 10' });
+    return icon.svg;
+  };
+
+  // An arrow pointing into a tray: the install symbol.
+  T.installIcon = function () {
+    var icon = iconBase();
+    icon.add('path', { d: 'M12 3v12' });
+    icon.add('polyline', { points: '7 11 12 16 17 11' });
+    icon.add('path', { d: 'M5 21h14' });
+    return icon.svg;
+  };
+
+  /* ---------- the Browse view as a link ----------
+   * The search, filters and sort order are kept in the page address (?q=...&source=imdb&sort=votes&dir=desc)
+   * so a view can be bookmarked or shared, and in localStorage so it is remembered. These functions
+   * turn a view into a query string and back. */
+
+  var SORTABLE = ['item', 'source', 'release_year', 'original_language'].concat(T.NUMERIC);
+  T.BROWSE_DEFAULT = { q: '', source: '', language: '', year: '', starred: false, sort: 'item', dir: 1 };
+
+  function readQuery(search) {
+    var out = {};
+    String(search || '').replace(/^\?/, '').split('&').forEach(function (pair) {
+      if (!pair) return;
+      var at = pair.indexOf('='), key = at < 0 ? pair : pair.slice(0, at), value = at < 0 ? '' : pair.slice(at + 1);
+      try { out[decodeURIComponent(key.replace(/\+/g, ' '))] = decodeURIComponent(value.replace(/\+/g, ' ')); }
+      catch (e) { /* ignore a piece that is not valid */ }
+    });
+    return out;
+  }
+
+  T.parseBrowseState = function (search) {
+    var q = readQuery(search), state = {};
+    Object.keys(T.BROWSE_DEFAULT).forEach(function (k) { state[k] = T.BROWSE_DEFAULT[k]; });
+    if (q.q) state.q = q.q.slice(0, 100);
+    ['source', 'language', 'year'].forEach(function (k) { if (q[k]) state[k] = q[k].slice(0, 40); });
+    if (q.starred === '1') state.starred = true;
+    if (q.sort && SORTABLE.indexOf(q.sort) >= 0) {
+      state.sort = q.sort;
+      state.dir = q.dir === 'asc' ? 1 : q.dir === 'desc' ? -1 : (T.NUMERIC.indexOf(q.sort) >= 0 || q.sort === 'release_year' ? -1 : 1);
+    }
+    return state;
+  };
+
+  // The query string for a view ('' when it is the plain default view).
+  T.formatBrowseState = function (state) {
+    var d = T.BROWSE_DEFAULT, parts = [];
+    function add(k, v) { parts.push(k + '=' + encodeURIComponent(v)); }
+    if (state.q) add('q', state.q);
+    if (state.source) add('source', state.source);
+    if (state.language) add('language', state.language);
+    if (state.year) add('year', state.year);
+    if (state.starred) add('starred', '1');
+    if (state.sort !== d.sort || state.dir !== d.dir) { add('sort', state.sort); add('dir', state.dir > 0 ? 'asc' : 'desc'); }
+    return parts.length ? '?' + parts.join('&') : '';
+  };
+
+  // The items chosen on the Trends page, as ?items=a,b,c
+  T.parseItemsParam = function (search) {
+    var value = readQuery(search).items;
+    return value ? value.split(',').filter(Boolean).slice(0, 8) : [];
+  };
+  T.formatItemsParam = function (ids) { return ids.length ? '?items=' + encodeURIComponent(ids.join(',')) : ''; };
+
+  // Change the address without adding a step to the browser history.
+  T.replaceQuery = function (query) {
+    try { root.history.replaceState(null, '', root.location.pathname + query + root.location.hash); } catch (e) { /* the address stays as it is */ }
+  };
+
+  // Go to another page. (A function of its own so it can be replaced in tests.)
+  T.navigate = function (url) { root.location.href = url; };
+
+  /* ---------- installing the site as an app ----------
+   * Browsers that can install a site hand over a prompt (the "beforeinstallprompt" event). It is kept
+   * until the install button is clicked. */
+  var installPrompt = null;
+  function installed() {
+    return !!((root.matchMedia && root.matchMedia('(display-mode: standalone)').matches) || (root.navigator && root.navigator.standalone === true));
+  }
+  if (typeof window !== 'undefined') {
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      installPrompt = e;
+      document.dispatchEvent(new Event('movie-tracker:install'));
+    });
+    window.addEventListener('appinstalled', function () {
+      installPrompt = null;
+      document.dispatchEvent(new Event('movie-tracker:install'));
+    });
+  }
+  T.canInstall = function () { return !!installPrompt && !installed(); };
+  T.install = function () {
+    if (!installPrompt) return Promise.resolve('unavailable');
+    var offer = installPrompt;
+    installPrompt = null;
+    document.dispatchEvent(new Event('movie-tracker:install'));
+    offer.prompt();
+    return offer.userChoice.then(function (choice) { return choice.outcome; }, function () { return 'dismissed'; });
+  };
+
   var PAGES = [['index.html', 'today', 'Today'], ['browse.html', 'browse', 'Browse'], ['trends.html', 'trends', 'Trends']];
 
   // The one navigation bar, written here once and used by every page.
@@ -272,8 +406,50 @@
       if (p[1] === active) a.setAttribute('aria-current', 'page');
       return a;
     });
+    // Top right: one small button that pops the sound switch and the replay button out to its left.
+    var tools = T.el('div', { class: 'nav-tools' });
+    var tray = T.el('div', { class: 'tool-tray', id: 'tool-tray' });
+    var toggle = T.el('button', { class: 'navbtn tools-toggle', type: 'button', 'aria-expanded': 'false',
+                                  'aria-controls': 'tool-tray', 'aria-label': 'Show tools', title: 'Sound and replay' },
+                      [T.el('span', { class: 'chev', text: '‹', 'aria-hidden': 'true' })]);
+    function setOpen(open, refocus) {
+      tools.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Hide tools' : 'Show tools');
+      if (!open && refocus) toggle.focus();
+    }
+    toggle.addEventListener('click', function () { setOpen(!tools.classList.contains('open')); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && tools.classList.contains('open')) setOpen(false, true);
+    });
+    document.addEventListener('click', function (e) { if (!tools.contains(e.target)) setOpen(false); });
+    var install = T.el('button', { class: 'navbtn icon-btn', type: 'button', 'aria-label': 'Install the app', title: 'Install this site as an app', hidden: '',
+                                   onclick: function () { T.install(); } }, [T.installIcon()]);
+    function syncInstall() { install.hidden = !T.canInstall(); }
+    document.addEventListener('movie-tracker:install', syncInstall);
+    syncInstall();
+    tray.appendChild(install);
+    if (root.Sound) {
+      var sound = T.el('button', { class: 'navbtn icon-btn', type: 'button', 'aria-label': 'Sound' });
+      var paint = function () {
+        var on = root.Sound.enabled();
+        sound.textContent = '';
+        sound.appendChild(T.volumeIcon(on));
+        sound.setAttribute('aria-pressed', String(on));
+        sound.title = on ? 'Sound is on (click to turn it off)' : 'Sound is off (click to turn it on)';
+      };
+      sound.addEventListener('click', function () { root.Sound.toggle(); paint(); });
+      paint();
+      tray.appendChild(sound);
+    }
+    if (root.Matrix) {
+      tray.appendChild(T.el('button', { class: 'navbtn icon-btn', type: 'button', 'aria-label': 'Replay intro', title: 'Replay the intro',
+                                        onclick: function () { setOpen(false); root.Matrix.replayIntro(); } }, [T.refreshIcon()]));
+    }
+    tools.appendChild(tray);
+    tools.appendChild(toggle);
     var bar = T.el('nav', { class: 'nav', 'aria-label': 'Main' }, [
-      T.el('div', { class: 'nav-inner' }, [T.el('a', { class: 'brand', href: 'index.html', text: '🎬 Movie Tracker' })].concat(links))
+      T.el('div', { class: 'nav-inner' }, [T.el('a', { class: 'brand', href: 'index.html', text: 'Movie Tracker' })].concat(links).concat([tools]))
     ]);
     var banner = T.el('div', { class: 'banner', role: 'status', hidden: '' }, [
       'You are offline. Showing the last data this device loaded.'
@@ -323,10 +499,14 @@
   T.start = function (page, render) {
     T.renderNav(page);
     T.renderFooter();
+    if (root.Sound) root.Sound.attach();    // clicks, typing and menus make sounds
+    if (root.Matrix) root.Matrix.init();   // the code rain, and the intro screen the first time in a session
     T.registerServiceWorker();
     var app = document.getElementById('app');
     T.loadData().then(function (data) {
       app.textContent = '';
+      T.data = data;
+      if (root.Terminal) root.Terminal.init(data, page);   // the command bar and keyboard shortcuts
       if (!data.rows.length) {
         app.appendChild(T.el('div', { class: 'card empty' }, [
           T.el('h2', { text: 'No data yet' }),
@@ -335,8 +515,11 @@
         return;
       }
       render(data, app);
+      if (root.Decode) root.Decode.start(app);      // headings and figures decode into place
+      if (root.Sound) root.Sound.play('loaded');   // only sounds if the browser already allows audio
     }).catch(function (err) {
       app.textContent = '';
+      if (root.Terminal) root.Terminal.init(null, page);
       app.appendChild(T.el('div', { class: 'card empty' }, [
         T.el('h2', { text: 'The data could not be loaded' }),
         T.el('p', { text: 'Open the site once while online so it can save a copy for offline use.' }),
@@ -348,8 +531,10 @@
   // The shortlist is kept in localStorage so it survives a reload.
   var memory = [];
   T.getShortlist = function () {
-    try { return JSON.parse(localStorage.getItem('movie-tracker.shortlist') || '[]'); }
-    catch (e) { return memory.slice(); }
+    try {
+      var saved = JSON.parse(localStorage.getItem('movie-tracker.shortlist') || '[]');
+      return Array.isArray(saved) ? saved.filter(function (id) { return typeof id === 'string'; }) : [];   // anything else is damaged
+    } catch (e) { return memory.slice(); }
   };
   T.setShortlist = function (ids) {
     memory = ids.slice();

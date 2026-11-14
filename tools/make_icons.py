@@ -1,4 +1,4 @@
-"""Draw the app icons (a play button on blue) with the standard library only.
+"""Draw the app icons (a green play button on black) with the standard library only.
 
     python tools/make_icons.py
 
@@ -9,8 +9,8 @@ import struct
 import zlib
 from pathlib import Path
 
-BLUE = (28, 92, 171)       # --link in site.css
-WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 65)       # --accent in site.css
 SAMPLES = 3                # SAMPLES x SAMPLES points per pixel, for smooth edges
 
 
@@ -37,7 +37,7 @@ def png(size):
                     x, y = px + (sx + 0.5) / SAMPLES, py + (sy + 0.5) / SAMPLES
                     hits += inside_triangle(x, y, a, b, c)
             t = hits / (SAMPLES * SAMPLES)
-            raw += bytes(round(BLUE[i] * (1 - t) + WHITE[i] * t) for i in range(3))
+            raw += bytes(round(BLACK[i] * (1 - t) + GREEN[i] * t) for i in range(3))
 
     def chunk(kind, data):
         body = kind + data
