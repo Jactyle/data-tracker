@@ -1,19 +1,43 @@
-date,item_id,item,source,popularity,vote_average,vote_count,views,views_7d,release_year,original_language
-2026-11-14,wikipedia:Avatar:_Fire_and_Ash,Avatar: Fire and Ash,wikipedia,,,,3952,29661,2025,en
-2026-11-14,wikipedia:Avengers:_Doomsday,Avengers: Doomsday,wikipedia,,,,49416,253764,2026,en
-2026-11-14,wikipedia:Barbie_(film),Barbie,wikipedia,,,,2430,17342,2023,en
-2026-11-14,wikipedia:Dune:_Part_Three,Dune: Part Three,wikipedia,,,,11274,75296,2026,en
-2026-11-14,wikipedia:Everything_Everywhere_All_at_Once,Everything Everywhere All at Once,wikipedia,,,,3410,24251,2022,en
-2026-11-14,wikipedia:Inception,Inception,wikipedia,,,,4581,33144,2010,en
-2026-11-14,wikipedia:Interstellar_(film),Interstellar,wikipedia,,,,13457,83165,2014,en
-2026-11-14,wikipedia:Joker_(2019_film),Joker,wikipedia,,,,2305,17705,2019,en
-2026-11-14,wikipedia:Oppenheimer_(film),Oppenheimer,wikipedia,,,,5129,40868,2023,en
-2026-11-14,wikipedia:Parasite_(2019_film),Parasite,wikipedia,,,,2955,21817,2019,ko
-2026-11-14,wikipedia:Spider-Man:_Across_the_Spider-Verse,Spider-Man: Across the Spider-Verse,wikipedia,,,,2307,16244,2023,en
-2026-11-14,wikipedia:The_Dark_Knight,The Dark Knight,wikipedia,,,,3611,27494,2008,en
-2026-11-14,wikipedia:The_Godfather,The Godfather,wikipedia,,,,4682,36687,1972,en
-2026-11-14,wikipedia:Titanic_(1997_film),Titanic,wikipedia,,,,4053,29116,1997,en
-2026-11-14,wikipedia:Top_Gun:_Maverick,Top Gun: Maverick,wikipedia,,,,3280,24145,2022,en
-2026-11-14,wikipedia:Toy_Story_5,Toy Story 5,wikipedia,,,,4427,34504,2026,en
-2026-11-14,wikipedia:Wicked:_For_Good,Wicked: For Good,wikipedia,,,,1484,11225,2025,en
-2026-11-14,wikipedia:Zootopia_2,Zootopia 2,wikipedia,,,,2774,18933,2025,en
+date,item_id,item,source,rating,votes,views,views_7d,release_year,original_language
+2026-11-14,imdb:tt10548174,28 Years Later,imdb,6.6,232414,,,2025,
+2026-11-14,imdb:tt10676052,The Fantastic Four: First Steps,imdb,6.8,299719,,,2025,
+2026-11-14,imdb:tt11378946,Michael,imdb,7.3,199022,,,2026,
+2026-11-14,imdb:tt12042730,Project Hail Mary,imdb,8.2,601557,,,2026,
+2026-11-14,imdb:tt12299608,Mickey 17,imdb,6.7,271516,,,2025,
+2026-11-14,imdb:tt12300742,Bugonia,imdb,7.4,234365,,,2025,
+2026-11-14,imdb:tt1312221,Frankenstein,imdb,7.4,347439,,,2025,
+2026-11-14,imdb:tt14364480,Wake Up Dead Man,imdb,7.3,266070,,,2025,
+2026-11-14,imdb:tt16311594,F1: The Movie,imdb,7.6,401857,,,2025,
+2026-11-14,imdb:tt1757678,Avatar: Fire and Ash,imdb,7.2,218842,,,2025,
+2026-11-14,imdb:tt20969586,Thunderbolts*,imdb,7.1,313415,,,2025,
+2026-11-14,imdb:tt22084616,Spider-Man: Brand New Day,imdb,7.9,385252,,,2026,
+2026-11-14,imdb:tt26581740,Weapons,imdb,7.4,425327,,,2025,
+2026-11-14,imdb:tt26657236,Backrooms,imdb,6.7,250547,,,2026,
+2026-11-14,imdb:tt27543632,The Housemaid,imdb,6.7,213782,,,2025,
+2026-11-14,imdb:tt30144839,One Battle After Another,imdb,7.6,457705,,,2025,
+2026-11-14,imdb:tt31036941,Jurassic World: Rebirth,imdb,5.8,208880,,,2025,
+2026-11-14,imdb:tt31193180,Sinners,imdb,7.5,542573,,,2025,
+2026-11-14,imdb:tt32916440,Marty Supreme,imdb,7.5,230053,,,2025,
+2026-11-14,imdb:tt33764258,The Odyssey,imdb,8.4,563721,,,2026,
+2026-11-14,imdb:tt37287335,Obsession,imdb,7.8,431052,,,2025,
+2026-11-14,imdb:tt5950044,Superman,imdb,7.0,454890,,,2025,
+2026-11-14,imdb:tt6208148,Snow White,imdb,2.2,399366,,,2025,
+2026-11-14,imdb:tt9603208,Mission: Impossible - The Final Reckoning,imdb,7.1,244355,,,2025,
+2026-11-14,wikipedia:Avatar:_Fire_and_Ash,Avatar: Fire and Ash,wikipedia,,,3952,29661,2025,en
+2026-11-14,wikipedia:Avengers:_Doomsday,Avengers: Doomsday,wikipedia,,,49416,253764,2026,en
+2026-11-14,wikipedia:Barbie_(film),Barbie,wikipedia,,,2430,17342,2023,en
+2026-11-14,wikipedia:Dune:_Part_Three,Dune: Part Three,wikipedia,,,11274,75296,2026,en
+2026-11-14,wikipedia:Everything_Everywhere_All_at_Once,Everything Everywhere All at Once,wikipedia,,,3410,24251,2022,en
+2026-11-14,wikipedia:Inception,Inception,wikipedia,,,4581,33144,2010,en
+2026-11-14,wikipedia:Interstellar_(film),Interstellar,wikipedia,,,13457,83165,2014,en
+2026-11-14,wikipedia:Joker_(2019_film),Joker,wikipedia,,,2305,17705,2019,en
+2026-11-14,wikipedia:Oppenheimer_(film),Oppenheimer,wikipedia,,,5129,40868,2023,en
+2026-11-14,wikipedia:Parasite_(2019_film),Parasite,wikipedia,,,2955,21817,2019,ko
+2026-11-14,wikipedia:Spider-Man:_Across_the_Spider-Verse,Spider-Man: Across the Spider-Verse,wikipedia,,,2307,16244,2023,en
+2026-11-14,wikipedia:The_Dark_Knight,The Dark Knight,wikipedia,,,3611,27494,2008,en
+2026-11-14,wikipedia:The_Godfather,The Godfather,wikipedia,,,4682,36687,1972,en
+2026-11-14,wikipedia:Titanic_(1997_film),Titanic,wikipedia,,,4053,29116,1997,en
+2026-11-14,wikipedia:Top_Gun:_Maverick,Top Gun: Maverick,wikipedia,,,3280,24145,2022,en
+2026-11-14,wikipedia:Toy_Story_5,Toy Story 5,wikipedia,,,4427,34504,2026,en
+2026-11-14,wikipedia:Wicked:_For_Good,Wicked: For Good,wikipedia,,,1484,11225,2025,en
+2026-11-14,wikipedia:Zootopia_2,Zootopia 2,wikipedia,,,2774,18933,2025,en
