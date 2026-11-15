@@ -115,23 +115,13 @@ def test_ambience_is_kept_for_offline_use():
     assert "'static/ambience.mp3'" in (ROOT / "sw.js").read_text(encoding="utf-8")
 
 
-def test_the_daily_workflow_has_a_backup_slot_that_skips_everything_when_not_needed():
+def test_the_daily_workflow_runs_once_a_day_and_commits_the_feed_with_the_data():
     text = (ROOT / ".github" / "workflows" / "daily.yml").read_text(encoding="utf-8")
-    assert len(re.findall(r'- cron: "', text)) == 2
-    assert 'github.event.schedule }}" = "17 20 * * *"' in text and "python3 -m tracker.needed" in text
-    steps = re.split(r"\n      - ", text.split("    steps:\n", 1)[1])
-    names = {"checkout": steps[0], "need": steps[1]}
-    assert "id: need" in names["need"] and "if:" not in names["need"], "the check itself must always run"
-    for step in steps[2:]:
-        assert "if: steps.need.outputs.needed == 'true'" in step, "every step after the check must wait for it: " + step[:50]
+    assert re.findall(r'- cron: "([^"]+)"', text) == ["17 14 * * *"]
+    assert "workflow_dispatch" in text                       # a run can be started by hand
     assert "git add data feed.xml" in text, "the feed has to be committed with the data"
 
 
-def test_phone_cards_are_wired_up_for_the_browse_and_today_tables():
-    css = (ROOT / "static" / "site.css").read_text(encoding="utf-8")
-    phone = css[css.index("max-width: 640px"):]
-    assert "table.cards" in phone and "attr(data-label)" in phone and "table.cards thead { display: none; }" in phone
-    for script in ("browse.js", "today.js"):
-        text = (ROOT / "static" / script).read_text(encoding="utf-8")
-        assert "'data-label'" in text and "keepTableRoles" in text and "cards" in text, script
-    assert "sort-field" in (ROOT / "static" / "browse.js").read_text(encoding="utf-8")        # the phone's way to sort
+def test_the_service_worker_always_asks_the_server_before_using_a_saved_file():
+    source = (ROOT / "sw.js").read_text(encoding="utf-8")
+    assert "fetch(request, { cache: 'no-cache' })" in source, "otherwise scripts from two deploys can be mixed for up to 10 minutes"

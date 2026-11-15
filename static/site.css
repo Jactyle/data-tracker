@@ -151,7 +151,7 @@ tbody tr:hover { background: var(--wash); }
 
 /* ---- form controls ---- */
 .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin: 0 0 16px; }
-.field { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; }
+.field { min-width: 0; max-width: 100%; display: flex; flex-direction: column; gap: 4px; font-size: .8rem; color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; }
 input[type="search"], select {
   font: inherit; color: var(--ink); background: var(--surface-solid);
   border: 1px solid var(--border); border-radius: 4px; padding: 7px 10px; min-width: 150px;
@@ -302,20 +302,19 @@ tr.current > td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
   .sort-field .field { flex: 1 1 auto; }
   table.cards, table.cards tbody { display: block; }
   table.cards thead { display: none; }
-  .table-wrap:has(> table.cards) { overflow: visible; }
   table.cards tr {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; position: relative; margin: 0 0 10px; padding: 10px 12px 8px;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 18px; position: relative; margin: 0 0 10px; padding: 10px 12px 8px;
     border: 1px solid var(--border); border-radius: 8px; background: rgba(0, 14, 5, 0.55);
   }
-  table.cards td { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 3px 0; border: 0; text-align: left; }
-  table.cards td::before { content: attr(data-label); color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+  table.cards td { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; min-width: 0; padding: 3px 0; border: 0; text-align: left; }
+  table.cards td::before { content: attr(data-label); color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; text-align: left; }
   table.cards td.num, table.cards td .val { text-align: right; }
   table.cards td.c-item { grid-column: 1 / -1; display: block; padding: 0 44px 6px 0; font-size: 1rem; font-weight: 600; color: var(--ink); }
   table.cards td.c-item::before, table.cards td.empty::before, table.cards td.c-star::before { content: none; }
   table.cards td.c-star { position: absolute; top: 2px; right: 4px; padding: 0; }
   table.cards td.empty { grid-column: 1 / -1; display: block; }
   table.cards td.nil { display: none; }            /* a value this film does not have takes no room on a card */
-  table.cmp-table td:last-child { grid-column: 1 / -1; }
+  table.cmp-table td.cv, table.cmp-table td:last-child { grid-column: 1 / -1; }          /* a film's name can be long, so each value gets its own line */
   table.cards tr.current { box-shadow: 0 0 0 2px var(--accent) inset; }
   table.cards tr.current > td, table.cards tr.current > td:first-child { background: none; box-shadow: none; }
   table.cards tbody tr:hover { background: rgba(0, 255, 65, 0.06); }
@@ -362,3 +361,5 @@ tr.current > td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .cmp-finding { margin: 12px 0 4px; font-size: 1.05rem; color: var(--ink); }
 .cmp-table td.lead { color: var(--accent); font-weight: 600; }
 .cmp-table th.num { max-width: 18ch; white-space: normal; }
+
+select { max-width: 100%; }               /* a menu with a long option must shrink on a narrow screen, not widen the page */

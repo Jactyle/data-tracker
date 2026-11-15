@@ -178,7 +178,10 @@
     else { var d = Cmp.defaults(films, stats); a = d.a; b = d.b; }
 
     function menu(label, slot, value) {
-      var select = el('select', { 'aria-label': label }, films.map(function (f) { return el('option', { value: f.name, text: f.name }); }));
+      // A film in only one source cannot be set beside one that is only in the other, so the menu says which source it is in.
+      var select = el('select', { 'aria-label': label }, films.map(function (f) {
+        return el('option', { value: f.name, text: f.name + (f.sources.length === 1 ? ' · ' + T.sourceLabel(f.sources[0]) + ' only' : '') });
+      }));
       select.value = value;
       var swatch = el('span', { class: 'cmp-swatch' });
       swatch.style.background = Charts.slotVar(slot);
@@ -218,6 +221,11 @@
       charts = [];
       var filmA = filmByName[a], filmB = filmByName[b];
       var rows = Cmp.compare(stats[a], stats[b]), finding = Cmp.finding(a, b, rows);
+      if (!rows.some(function (r) { return r.lead !== null; }) && filmA.sources.length === 1 && filmB.sources.length === 1 && filmA.sources[0] !== filmB.sources[0]) {
+        // say exactly why there is nothing to compare, and what to do about it
+        finding.paragraphs = [a + ' is only in the ' + T.sourceLabel(filmA.sources[0]) + ' data and ' + b + ' only in the ' + T.sourceLabel(filmB.sources[0]) +
+          ' data, so they share no numbers. Pick two films from the same source (the menus say which source a film is in), or a film that is in both.'];
+      }
       var wasOpen = !!(out.querySelector('details.data-table') && out.querySelector('details.data-table').open);     // a table you opened stays open
       out.textContent = '';
 
@@ -228,8 +236,8 @@
           var text = r.lead === 'a' || r.lead === 'b' ? ahead + ' · ' + Cmp.gapText(r) : ahead;
           return el('tr', {}, [
             el('td', { class: 'c-item', text: r.label }),
-            el('td', { class: 'num' + (r.lead === 'a' ? ' lead' : ''), 'data-label': a, text: fmt(r.key, r.a) }),
-            el('td', { class: 'num' + (r.lead === 'b' ? ' lead' : ''), 'data-label': b, text: fmt(r.key, r.b) }),
+            el('td', { class: 'num cv' + (r.lead === 'a' ? ' lead' : ''), 'data-label': a, text: fmt(r.key, r.a) }),
+            el('td', { class: 'num cv' + (r.lead === 'b' ? ' lead' : ''), 'data-label': b, text: fmt(r.key, r.b) }),
             el('td', { 'data-label': 'Ahead', text: text })
           ]);
         }))

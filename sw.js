@@ -1,6 +1,6 @@
 /* Service worker: online, every file comes from the network (and is saved);
  * offline, the site opens from the saved copy and shows the last data it loaded. */
-const CACHE = 'movie-tracker-v13';
+const CACHE = 'movie-tracker-v14';
 
 const SHELL = [
   './', 'index.html', 'browse.html', 'trends.html', 'manifest.webmanifest',
@@ -35,7 +35,10 @@ self.addEventListener('fetch', (event) => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     try {
-      const response = await fetch(request);               // network first: always the latest data
+      // Network first: always the latest files. `no-cache` makes the browser ask the server whether a file changed
+      // (a cheap 304 when it did not) instead of reusing its own copy for the 10 minutes GitHub Pages allows, so a
+      // page can never mix a new script with an old one right after a deploy.
+      const response = await fetch(request, { cache: 'no-cache' });
       if (response.status === 200) cache.put(request, response.clone());
       return response;
     } catch (err) {
