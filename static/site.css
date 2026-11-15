@@ -362,4 +362,4 @@ tr.current > td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .cmp-table td.lead { color: var(--accent); font-weight: 600; }
 .cmp-table th.num { max-width: 18ch; white-space: normal; }
 
-select { max-width: 100%; }               /* a menu with a long option must shrink on a narrow screen, not widen the page */
+select { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }     /* a long option must be cut short with …, not spill out of the menu and widen the page */

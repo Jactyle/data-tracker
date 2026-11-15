@@ -125,3 +125,13 @@ def test_the_daily_workflow_runs_once_a_day_and_commits_the_feed_with_the_data()
 def test_the_service_worker_always_asks_the_server_before_using_a_saved_file():
     source = (ROOT / "sw.js").read_text(encoding="utf-8")
     assert "fetch(request, { cache: 'no-cache' })" in source, "otherwise scripts from two deploys can be mixed for up to 10 minutes"
+    # a navigation request is passed on untouched: rebuilding one with options throws in some browsers, and the worker would then
+    # fall back to its saved copy of the page for good
+    assert "request.mode === 'navigate' ? await fetch(request) : await fetch(request" in source
+
+
+def test_menus_cut_long_options_short_instead_of_spilling_out_and_widening_the_page():
+    css = (ROOT / "static" / "site.css").read_text(encoding="utf-8")
+    rule = re.search(r"\nselect \{([^}]*)\}", css)
+    assert rule, "there should be a general rule for menus"
+    assert "overflow: hidden" in rule.group(1) and "text-overflow: ellipsis" in rule.group(1) and "max-width: 100%" in rule.group(1)

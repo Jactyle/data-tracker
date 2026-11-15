@@ -35,10 +35,12 @@ self.addEventListener('fetch', (event) => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     try {
-      // Network first: always the latest files. `no-cache` makes the browser ask the server whether a file changed
-      // (a cheap 304 when it did not) instead of reusing its own copy for the 10 minutes GitHub Pages allows, so a
-      // page can never mix a new script with an old one right after a deploy.
-      const response = await fetch(request, { cache: 'no-cache' });
+      // Network first: always the latest files. For scripts, styles and data, `no-cache` makes the browser ask the server
+      // whether a file changed (a cheap 304 when it did not) instead of reusing its own copy for the 10 minutes GitHub Pages
+      // allows, so a page can never mix a new script with an old one right after a deploy. A page itself is fetched as it
+      // came: some browsers refuse to rebuild a navigation request with options, and a page that is a few minutes old
+      // does no harm (it only names scripts, and those are always fresh).
+      const response = request.mode === 'navigate' ? await fetch(request) : await fetch(request, { cache: 'no-cache' });
       if (response.status === 200) cache.put(request, response.clone());
       return response;
     } catch (err) {
