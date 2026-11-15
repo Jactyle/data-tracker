@@ -7,8 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.helpers import imdb_raw, wiki_raw
-from tests.test_run import at, sources
+from tests.helpers import at, imdb_raw, sources, wiki_raw
 from tracker.config import Paths
 from tracker.moves import compute_report
 from tracker.rows import read_csv

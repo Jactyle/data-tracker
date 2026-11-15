@@ -1,37 +1,11 @@
 import csv
-from datetime import datetime, timezone
-from types import SimpleNamespace
 
-from tests.helpers import IMDB_HEADER, imdb_raw, wiki_raw
+from tests.helpers import IMDB_HEADER, at, imdb_raw, sources, wiki
 from tracker.config import Paths
 from tracker.report import issue_body
 from tracker.rows import read_csv
 from tracker.run import run
 from tracker.status import read_status
-
-
-def fake_source(name, payload, convert_module):
-    """A source whose fetch returns `payload` (bytes), or raises if payload is an Exception."""
-    def fetch(today):
-        if isinstance(payload, Exception):
-            raise payload
-        return payload
-
-    return SimpleNamespace(NAME=name, EXT="tsv" if name == "imdb" else "json", fetch=fetch, convert=convert_module.convert)
-
-
-def sources(imdb_payload, wiki_payload):
-    from tracker.sources import imdb, wikipedia
-    return {"imdb": fake_source("imdb", imdb_payload, imdb),
-            "wikipedia": fake_source("wikipedia", wiki_payload, wikipedia)}
-
-
-def at(day, hour=6):
-    return datetime(2026, 11, day, hour, 5, 9, tzinfo=timezone.utc)
-
-
-def wiki(day_views):
-    return wiki_raw(Inception={"20261113": day_views, "20261112": day_views})
 
 
 def test_first_run_writes_raw_history_and_status(tmp_path):

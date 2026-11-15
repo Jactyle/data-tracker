@@ -31,6 +31,10 @@ MAIN_VALUE = {
 # How many moves the move rule keeps from each source.
 TOP_MOVES_PER_SOURCE = 5
 
+# Where the site is published, and how many days the Atom feed lists.
+SITE_URL = "https://jactyle.github.io/data-tracker/"
+FEED_DAYS = 30
+
 
 class Paths:
     """Every file the pipeline reads or writes, relative to one root folder."""
@@ -42,6 +46,7 @@ class Paths:
         self.history = self.data / "history.csv"
         self.status = self.data / "status.json"
         self.source_log = self.data / "source_log.csv"
+        self.feed = self.root / "feed.xml"      # at the top, so the site serves it at /feed.xml
 
 
 DEFAULT_PATHS = Paths(ROOT)

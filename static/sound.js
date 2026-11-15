@@ -562,7 +562,7 @@
       var control = target.closest('a[href], button, summary, select, input[type="checkbox"], input[type="search"]');
       if (!control) return;
       if (control.classList.contains('tools-toggle')) S.play('slide', control.getAttribute('aria-expanded') !== 'true', true);
-      else if (control.classList.contains('star')) S.play('star', control.getAttribute('aria-pressed') !== 'true', true);
+      else if (control.classList.contains('star') || control.classList.contains('cloud-star')) S.play('star', control.getAttribute('aria-pressed') !== 'true', true);
       else S.play('click', null, true);
     }, true);
 

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>https://jactyle.github.io/data-tracker/</id>
+  <title>Movie Tracker daily report</title>
+  <subtitle>The biggest moves, and the films that appeared or disappeared, each day.</subtitle>
+  <updated>2026-11-15T00:00:00Z</updated>
+  <link rel="alternate" href="https://jactyle.github.io/data-tracker/"/>
+  <link rel="self" type="application/atom+xml" href="https://jactyle.github.io/data-tracker/feed.xml"/>
+  <author><name>Movie Tracker</name></author>
+  <entry>
+    <id>https://jactyle.github.io/data-tracker/#2026-11-15</id>
+    <title>Report for 2026-11-15</title>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <link rel="alternate" href="https://jactyle.github.io/data-tracker/"/>
+    <summary>10 moves, 0 appeared, 0 disappeared</summary>
+    <content type="text">Movie tracker report for 2026-11-15
+
+Biggest moves since the previous run:
+- The Godfather (wikipedia): views 4,682 -&gt; 6,148 (+31.3%)
+- Toy Story 5 (wikipedia): views 4,427 -&gt; 5,732 (+29.5%)
+- Wicked: For Good (wikipedia): views 1,484 -&gt; 1,840 (+24.0%)
+- Inception (wikipedia): views 4,581 -&gt; 5,502 (+20.1%)
+- Oppenheimer (wikipedia): views 5,129 -&gt; 6,029 (+17.5%)
+- The Odyssey (imdb): votes 563,721 -&gt; 566,637 (+0.5%)
+- Spider-Man: Brand New Day (imdb): votes 385,252 -&gt; 386,267 (+0.3%)
+- Backrooms (imdb): votes 250,547 -&gt; 251,171 (+0.2%)
+- Obsession (imdb): votes 431,052 -&gt; 431,919 (+0.2%)
+- Project Hail Mary (imdb): votes 601,557 -&gt; 602,471 (+0.2%)
+Appeared: none
+Disappeared: none</content>
+  </entry>
+  <entry>
+    <id>https://jactyle.github.io/data-tracker/#2026-11-14</id>
+    <title>Report for 2026-11-14</title>
+    <updated>2026-11-14T00:00:00Z</updated>
+    <link rel="alternate" href="https://jactyle.github.io/data-tracker/"/>
+    <summary>0 moves, 0 appeared, 0 disappeared</summary>
+    <content type="text">Movie tracker report for 2026-11-14
+
+Biggest moves since the previous run:
+- none
+Appeared: none
+Disappeared: none
+Note: imdb has no earlier run yet, so there is nothing to compare.
+Note: wikipedia has no earlier run yet, so there is nothing to compare.</content>
+  </entry>
+</feed>

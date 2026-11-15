@@ -359,6 +359,26 @@
   };
   T.formatItemsParam = function (ids) { return ids.length ? '?items=' + encodeURIComponent(ids.join(',')) : ''; };
 
+  // Keep a query string's other parts when one changes: changes is {name: value}, a value of null or '' removes that part.
+  T.readQuery = readQuery;
+  T.mergeQuery = function (search, changes) {
+    var q = readQuery(search);
+    Object.keys(changes).forEach(function (k) { if (changes[k] === null || changes[k] === '') delete q[k]; else q[k] = changes[k]; });
+    var parts = Object.keys(q).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(q[k]); });
+    return parts.length ? '?' + parts.join('&') : '';
+  };
+  T.updateQuery = function (changes) { T.replaceQuery(T.mergeQuery(root.location.search, changes)); };
+
+  // On a phone a table is drawn as a stack of cards (display: block in site.css), which makes some
+  // screen readers forget it is a table. Saying so with roles keeps the rows and columns.
+  T.keepTableRoles = function (table) {
+    table.setAttribute('role', 'table');
+    Array.prototype.forEach.call(table.querySelectorAll('thead, tbody'), function (n) { n.setAttribute('role', 'rowgroup'); });
+    Array.prototype.forEach.call(table.querySelectorAll('tr'), function (n) { n.setAttribute('role', 'row'); });
+    Array.prototype.forEach.call(table.querySelectorAll('th'), function (n) { n.setAttribute('role', 'columnheader'); });
+    Array.prototype.forEach.call(table.querySelectorAll('td'), function (n) { n.setAttribute('role', 'cell'); });
+  };
+
   // Change the address without adding a step to the browser history.
   T.replaceQuery = function (query) {
     try { root.history.replaceState(null, '', root.location.pathname + query + root.location.hash); } catch (e) { /* the address stays as it is */ }
@@ -470,7 +490,9 @@
       T.el('a', { href: 'https://www.imdb.com', text: 'IMDb' }),
       ', used for personal, non-commercial purposes under ',
       T.el('a', { href: 'https://developer.imdb.com/non-commercial-datasets/', text: 'IMDb’s non-commercial dataset terms' }),
-      '. Page views: Wikimedia pageviews API.'
+      '. Page views: Wikimedia pageviews API. ',
+      T.el('a', { href: 'feed.xml', text: 'Daily report feed' }),
+      ' (Atom).'
     ]);
     document.body.appendChild(foot);
   };
@@ -500,6 +522,7 @@
     T.renderNav(page);
     T.renderFooter();
     if (root.Sound) root.Sound.attach();    // clicks, typing and menus make sounds
+    if (root.Ripple) root.Ripple.attach();  // clicks make a burst of falling code
     if (root.Matrix) root.Matrix.init();   // the code rain, and the intro screen the first time in a session
     T.registerServiceWorker();
     var app = document.getElementById('app');

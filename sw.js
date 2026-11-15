@@ -1,10 +1,10 @@
 /* Service worker: online, every file comes from the network (and is saved);
  * offline, the site opens from the saved copy and shows the last data it loaded. */
-const CACHE = 'movie-tracker-v10';
+const CACHE = 'movie-tracker-v13';
 
 const SHELL = [
   './', 'index.html', 'browse.html', 'trends.html', 'manifest.webmanifest',
-  'static/site.css', 'static/sound.js', 'static/intro-envelope.js', 'static/opening.js', 'static/matrix.js', 'static/decode.js', 'static/terminal.js', 'static/lib.js', 'static/charts.js',
+  'static/site.css', 'static/sound.js', 'static/intro-envelope.js', 'static/opening.js', 'static/matrix.js', 'static/decode.js', 'static/ripple.js', 'static/terminal.js', 'static/lib.js', 'static/charts.js', 'static/cloud.js', 'static/compare.js',
   'static/today.js', 'static/browse.js', 'static/trends.js',
   'static/icon-192.png', 'static/icon-512.png'
 ];

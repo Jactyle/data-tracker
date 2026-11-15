@@ -145,7 +145,7 @@
     var every = Math.max(1, Math.ceil(n / Math.max(1, Math.floor(plotW / 64))));
     o.dates.forEach(function (d, i) {
       if (i % every !== 0 && i !== n - 1) return;
-      if (i !== n - 1 && n - 1 - i < every / 2) return;
+      if (i !== n - 1 && n - 1 - i < every) return;          // a label needs a full step of room before the last one
       var lab = svg('text', { class: 't-axis', x: X(i), y: height - 8, 'text-anchor': n === 1 ? 'middle' : i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle' }, el);
       lab.textContent = d.slice(5);
     });

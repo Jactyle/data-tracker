@@ -49,7 +49,7 @@
     }
     function remember() {
       var bySlot = Object.keys(slots).sort(function (a, b) { return slots[a] - slots[b]; });
-      T.replaceQuery(T.formatItemsParam(bySlot));
+      T.updateQuery({ items: bySlot.join(',') });          // keeps other parts of the address, like the film comparison
     }
 
     var card = el('div', { class: 'card' }, [
@@ -275,6 +275,8 @@
       plural(data.rows.length, 'row') + ' covering ' + plural(a.dates.length, 'day') + ' (' + a.firstDate + ' to ' + a.latestDate + '). ' +
       'The page changes as the history grows.' }));
     valuesCharts(app, data);
+    if (window.Cloud) window.Cloud.mount(app, data);        // the films in a 3D box
+    if (window.Compare) window.Compare.mount(app, data);    // two films side by side
     app.appendChild(el('h2', { text: 'What the history shows', style: 'margin-top: 24px' }));
     risersSection(app, data.rows);
     daySection(app, data.rows);

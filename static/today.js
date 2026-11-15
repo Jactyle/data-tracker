@@ -100,19 +100,22 @@
       .concat([el('th', { class: 'num', text: 'Move' })]));
     var tbody = el('tbody');
     items.forEach(function (it) {
-      var tds = [el('td', { text: it.row.item }), el('td', { text: T.sourceLabel(it.row.source) })];
+      // data-label is the name shown beside the value when a phone draws the row as a card
+      var tds = [el('td', { class: 'c-item', 'data-label': 'Item', text: it.row.item }), el('td', { 'data-label': 'Source', text: T.sourceLabel(it.row.source) })];
       cols.forEach(function (c) {
-        tds.push(el('td', { class: 'num' }, [el('span', { text: T.fmt(it.row[c], c) }), deltaNode(it, c)]));
+        tds.push(el('td', { class: 'num' + (it.row[c] == null ? ' nil' : ''), 'data-label': T.LABELS[c] }, [el('div', { class: 'val' }, [el('span', { text: T.fmt(it.row[c], c) }), deltaNode(it, c)])]));
       });
       var move = it.percent == null ? '—' : T.pct(it.percent);
-      tds.push(el('td', { class: 'num' }, [el('span', { text: move }),
-        it.percent == null ? null : el('span', { class: 'delta ' + (it.percent > 0 ? 'up' : it.percent < 0 ? 'down' : ''), text: T.arrow(it.percent) + ' ' + T.LABELS[it.column] })]));
+      tds.push(el('td', { class: 'num' + (it.percent == null ? ' nil' : ''), 'data-label': 'Move' }, [el('div', { class: 'val' }, [el('span', { text: move }),
+        it.percent == null ? null : el('span', { class: 'delta ' + (it.percent > 0 ? 'up' : it.percent < 0 ? 'down' : ''), text: T.arrow(it.percent) + ' ' + T.LABELS[it.column] })])]));
       tbody.appendChild(el('tr', {}, tds));
     });
+    var latest = el('table', { class: 'cards' }, [el('thead', {}, [head]), tbody]);
+    T.keepTableRoles(latest);
     app.appendChild(el('div', { class: 'card' }, [
       el('h2', { text: 'Latest values' }),
       el('p', { class: 'small muted', text: 'Small numbers under each value show the change since the previous run.' }),
-      el('div', { class: 'table-wrap' }, [el('table', {}, [el('thead', {}, [head]), tbody])])
+      el('div', { class: 'table-wrap' }, [latest])
     ]));
   }
 

@@ -44,20 +44,22 @@
     var language = el('select', {}, options(languages));
     var year = el('select', {}, options(years));
     var starred = el('input', { type: 'checkbox' });
+    var sortChoice = el('select', { 'aria-label': 'Sort by' }, COLUMNS.map(function (c) { return el('option', { value: c.key, text: c.label }); }));
+    var sortDirection = el('button', { type: 'button', class: 'sort-direction' });
     var clearButton = el('button', { type: 'button', text: 'Clear filters' });
     var copyButton = el('button', { type: 'button', text: 'Copy link', title: 'Copy a link to this view' });
     var count = el('p', { class: 'small muted', role: 'status' });
 
     app.appendChild(el('div', { class: 'controls' }, [
       field('Search', search), field('Source', source), field('Language', language), field('Release year', year),
+      el('div', { class: 'sort-field' }, [field('Sort by', sortChoice), sortDirection]),       // on a phone the column headers are gone, so sorting is here
       el('label', { class: 'check' }, [starred, 'Shortlist only']), el('div', { class: 'view-actions' }, [clearButton, copyButton])
     ]));
     app.appendChild(count);
 
     var thead = el('tr'), tbody = el('tbody');
-    app.appendChild(el('div', { class: 'card' }, [el('div', { class: 'table-wrap' }, [
-      el('table', { id: 'items' }, [el('thead', {}, [thead]), tbody])
-    ])]));
+    var table = el('table', { id: 'items', class: 'cards' }, [el('thead', {}, [thead]), tbody]);
+    app.appendChild(el('div', { class: 'card' }, [el('div', { class: 'table-wrap' }, [table])]));
 
     /* ---------- the view: from the address, or the last one used ---------- */
 
@@ -131,9 +133,13 @@
         s.th.setAttribute('aria-sort', active ? (state.dir > 0 ? 'ascending' : 'descending') : 'none');
       });
       clearButton.hidden = T.formatBrowseState(state) === '';
+      sortChoice.value = state.sort;
+      sortDirection.textContent = state.dir > 0 ? '▲ Ascending' : '▼ Descending';
+      sortDirection.setAttribute('aria-label', 'Sort direction: ' + (state.dir > 0 ? 'ascending' : 'descending') + ' (press to reverse)');
       tbody.textContent = '';
       if (!shown.length) {
         tbody.appendChild(el('tr', {}, [el('td', { colspan: String(COLUMNS.length + 1), class: 'empty', text: 'No items match.' })]));
+        T.keepTableRoles(table);
         return;
       }
       shown.forEach(function (r) {
@@ -141,15 +147,17 @@
         var star = el('button', { class: 'star', type: 'button', 'aria-pressed': String(on),
           'aria-label': (on ? 'Remove ' : 'Add ') + r.item + (on ? ' from' : ' to') + ' shortlist', title: on ? 'Remove from shortlist' : 'Add to shortlist',
           text: on ? '★' : '☆', onclick: function () { toggleStar(r.item_id); } });
-        var tds = [el('td', {}, [star])];
+        var tds = [el('td', { class: 'c-star' }, [star])];
         COLUMNS.forEach(function (col) {
           var text = col.key === 'source' ? T.sourceLabel(r.source) : col.numeric ? T.fmt(r[col.key], col.key) : (r[col.key] == null ? '—' : r[col.key]);
-          tds.push(el('td', { class: col.numeric ? 'num' : '', text: text }));
+          // data-label is the name shown beside the value when a phone draws the row as a card
+          tds.push(el('td', { class: (col.numeric ? 'num' : '') + (col.key === 'item' ? ' c-item' : '') + (r[col.key] == null ? ' nil' : ''), 'data-label': col.label, text: text }));
         });
         var row = el('tr', { 'data-id': r.item_id }, tds);
         if (r.item_id === currentId) { row.classList.add('current'); row.setAttribute('aria-current', 'true'); }
         tbody.appendChild(row);
       });
+      T.keepTableRoles(table);
     }
 
     // The view changed: show it, remember it, put it in the address.
@@ -167,6 +175,13 @@
     source.addEventListener('change', function () { state.source = source.value; commit(true); });
     language.addEventListener('change', function () { state.language = language.value; commit(true); });
     year.addEventListener('change', function () { state.year = year.value; commit(true); });
+    sortChoice.addEventListener('change', function () {
+      var col = COLUMNS.filter(function (c) { return c.key === sortChoice.value; })[0];
+      state.sort = col.key;
+      state.dir = col.numeric ? -1 : 1;
+      commit(true);
+    });
+    sortDirection.addEventListener('click', function () { state.dir = -state.dir; commit(true); });
     starred.addEventListener('change', function () { state.starred = starred.checked; shortlist = T.getShortlist(); commit(true); });
     clearButton.addEventListener('click', function () { api.apply({ reset: true }); });
     copyButton.addEventListener('click', function () {

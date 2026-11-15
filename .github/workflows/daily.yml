@@ -3,6 +3,8 @@ name: Daily run
 on:
   schedule:
     - cron: "17 14 * * *"  # every day at 14:17 UTC (Wikipedia has published yesterday's views by then)
+    - cron: "17 20 * * *"  # a backup slot: GitHub's scheduled runs are best effort, so this one only does the
+                           # job when the 14:17 run did not (see "Is this run needed?" below)
   workflow_dispatch:        # lets you start a run by hand
 
 permissions:
@@ -21,18 +23,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Is this run needed?
+        id: need
+        # The 14:17 slot and a run started by hand always go ahead. The 20:17 backup slot stops here
+        # when today's run already happened and every source was ok, so a normal day makes one commit.
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "17 20 * * *" ]; then
+            echo "needed=$(python3 -m tracker.needed)" >> "$GITHUB_OUTPUT"
+          else
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-python@v5
+        if: steps.need.outputs.needed == 'true'
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: requirements.txt
 
       - run: pip install -r requirements.txt
+        if: steps.need.outputs.needed == 'true'
 
       - name: Download sources, save raw files, build history and status
+        if: steps.need.outputs.needed == 'true'
         run: python -m tracker.run
 
       - name: Open today's issue and close the previous one
+        if: steps.need.outputs.needed == 'true'
         continue-on-error: true   # a GitHub API hiccup must not lose the day's data
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -40,10 +57,11 @@ jobs:
         run: python -m tracker.issues
 
       - name: Commit the data files
+        if: steps.need.outputs.needed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data
+          git add data feed.xml
           if git diff --cached --quiet; then
             echo "Nothing changed; nothing to commit."
           else
@@ -53,6 +71,7 @@ jobs:
           fi
 
       - name: Ask GitHub Pages to rebuild the site
+        if: steps.need.outputs.needed == 'true'
         # A push made with the built-in token may not start a Pages build by itself, so ask for one.
         continue-on-error: true
         env:

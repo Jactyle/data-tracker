@@ -6,7 +6,8 @@ Every run uses the UTC date of the moment it runs. A second run on the same
 day replaces that day's raw files and rebuilds the history, so each day counts
 once. A source that fails writes no raw file; an earlier raw file from the same
 day is kept. The result of every source is recorded in the status file and in
-data/source_log.csv.
+data/source_log.csv. The Atom feed (feed.xml) is rewritten from the history
+at the end of every run.
 """
 from __future__ import annotations
 
@@ -16,6 +17,7 @@ from datetime import datetime, timezone
 from . import raw
 from .build import build_history
 from .config import DEFAULT_PATHS
+from .feed import write_feed
 from .sources import SOURCES
 from .status import build_status, update_source_log, write_status
 
@@ -46,6 +48,7 @@ def run(now=None, paths=DEFAULT_PATHS, sources=None):
     status = build_status(rows, results, now, paths)
     write_status(status, paths)
     update_source_log(date, status["run_time"], results, paths)
+    write_feed(rows, paths)
     return status, results
 
 

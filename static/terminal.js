@@ -5,7 +5,8 @@
  *
  *   go today | browse | trends        search <text>          star <film> / unstar <film>
  *   sort <column> [asc|desc]          filter source|year|language <value>
- *   shortlist   clear   sound on|off   replay   install   help
+ *   compare <film> vs <film>
+ *   shortlist   clear   sound on|off   ripples on|off   replay   install   help
  *
  * Shortcuts (when you are not typing in a box):  /  open the bar    ?  help    g then t, b or h  go to
  * Trends, Browse or Today.  The Browse page adds j and k (move down and up the list) and s (star).
@@ -34,11 +35,13 @@
     { name: 'search', usage: 'search <text>', help: 'find films by name on the Browse page', args: true },
     { name: 'star', usage: 'star <film>', help: 'add a film to your shortlist', args: true },
     { name: 'unstar', usage: 'unstar <film>', help: 'take a film off your shortlist', args: true },
+    { name: 'compare', usage: 'compare <film> vs <film>', help: 'compare two films side by side', args: true },
     { name: 'shortlist', usage: 'shortlist', help: 'show only your starred films', args: false },
     { name: 'sort', usage: 'sort <column> [asc|desc]', help: 'sort the Browse page by rating, votes, views, 7d, year ...', args: true },
     { name: 'filter', usage: 'filter source|year|language <value>', help: 'filter the Browse page', args: true },
     { name: 'clear', usage: 'clear', help: 'clear the search and the filters', args: false },
     { name: 'sound', usage: 'sound on | off', help: 'turn all sound on or off', args: true },
+    { name: 'ripples', usage: 'ripples on | off', help: 'turn the click effects on or off', args: true },
     { name: 'replay', usage: 'replay', help: 'play the intro again', args: false },
     { name: 'install', usage: 'install', help: 'install this site as an app', args: false },
     { name: 'help', usage: 'help', help: 'list the commands and the keyboard shortcuts', args: false }
@@ -138,6 +141,18 @@
       matchGroups(args, ctx.groups).slice(0, 6).forEach(function (g) {
         out.push({ type: 'item', text: cmd + ' ' + g.name, label: g.name, hint: g.sources.join(' + ') });
       });
+    } else if (cmd === 'compare') {
+      var versus = args.match(/^(.*?)\s+vs\.?(?:\s+(.*))?$/i);
+      if (versus) {                                              // the first film is chosen: suggest the second
+        var firstFilm = versus[1].trim(), second = versus[2] || '';
+        matchGroups(second, ctx.groups).slice(0, 6).forEach(function (g) {
+          out.push({ type: 'item', text: 'compare ' + firstFilm + ' vs ' + g.name, label: firstFilm + ' vs ' + g.name, hint: 'compare these two' });
+        });
+      } else {
+        matchGroups(args, ctx.groups).slice(0, 6).forEach(function (g) {
+          out.push({ type: 'item', text: 'compare ' + g.name + ' vs ', label: g.name, hint: 'then type the second film', needsArg: true });
+        });
+      }
     } else if (cmd === 'sort') {
       var parts = args.split(/\s+/), word = (parts[0] || '').toLowerCase();
       if (parts.length <= 1) {
@@ -154,8 +169,8 @@
         var wanted = (f[1] || '').toLowerCase();
         known.forEach(function (v) { if (!wanted || String(v).toLowerCase().indexOf(wanted) === 0) out.push({ type: 'command', text: 'filter ' + key + ' ' + v, label: 'filter ' + key + ' ' + v, hint: 'show only this' }); });
       }
-    } else if (cmd === 'sound') {
-      ['on', 'off'].forEach(function (v) { if (!lower || v.indexOf(lower) === 0) out.push({ type: 'command', text: 'sound ' + v, label: 'sound ' + v, hint: 'turn all sound ' + v }); });
+    } else if (cmd === 'sound' || cmd === 'ripples') {
+      ['on', 'off'].forEach(function (v) { if (!lower || v.indexOf(lower) === 0) out.push({ type: 'command', text: cmd + ' ' + v, label: cmd + ' ' + v, hint: 'turn ' + (cmd === 'sound' ? 'all sound ' : 'the click effects ') + v }); });
     }
     return limit(out);
   };
@@ -283,7 +298,10 @@
     if (e.key === 'Escape') { e.preventDefault(); closeBar(); }
     else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
-      if (!current.length) return;
+      if (!current.length) {                       // the help list has no choices, so the arrows scroll it
+        if (ui.list.classList.contains('help')) ui.list.scrollTop += (e.key === 'ArrowDown' ? 1 : -1) * 80;
+        return;
+      }
       active = (active + (e.key === 'ArrowDown' ? 1 : -1) + current.length) % current.length;
       markActive();
     } else if (e.key === 'Tab') {
@@ -377,6 +395,20 @@
       sound('star', want);
       return (want ? 'Starred ' : 'Removed from your shortlist: ') + found.group.name;
     }
+    if (name === 'compare') {
+      var pair = args.match(/^(.+?)\s+vs\.?\s+(.+)$/i);
+      if (!pair) return 'Try: compare inception vs oppenheimer';
+      var first = Tm.resolve(pair[1], ctx.groups), other = Tm.resolve(pair[2], ctx.groups);
+      var trouble = [[first, pair[1]], [other, pair[2]]].map(function (x) {
+        return x[0].none ? 'No film matches “' + x[1].trim() + '”'
+             : x[0].many ? x[0].many.length + ' films match “' + x[1].trim() + '”: ' + x[0].many.slice(0, 3).join(', ') + '…. Be more specific.' : '';
+      }).filter(Boolean)[0];
+      if (trouble) return trouble;
+      if (first.group.name === other.group.name) return 'Pick two different films to compare';
+      if (root.TrackerCompare) { root.TrackerCompare.set(first.group.name, other.group.name); return 'Comparing ' + first.group.name + ' with ' + other.group.name; }
+      t.navigate('trends.html' + t.mergeQuery('', { compare: first.group.name + '~' + other.group.name }));
+      return 'Opening the comparison…';
+    }
     if (name === 'shortlist') { applyBrowse({ starred: true }); return 'Showing your shortlist'; }
     if (name === 'clear') { applyBrowse({ reset: true }); return 'Cleared the search and filters'; }
     if (name === 'sort') {
@@ -403,6 +435,11 @@
       var turnOn = /^(on|1|yes)$/i.test(args) ? true : /^(off|0|no)$/i.test(args) ? false : !root.Sound.enabled();
       if (root.Sound.enabled() !== turnOn) root.Sound.toggle();
       return 'Sound is ' + (turnOn ? 'on' : 'off');
+    }
+    if (name === 'ripples') {
+      var effects = /^(on|1|yes)$/i.test(args) ? true : /^(off|0|no)$/i.test(args) ? false : !(root.Ripple && root.Ripple.enabled());
+      if (root.Ripple) root.Ripple.setEnabled(effects);
+      return 'Click effects are ' + (effects ? 'on' : 'off');
     }
     if (name === 'replay') { if (root.Matrix) root.Matrix.replayIntro(); return ''; }
     if (name === 'install') {
