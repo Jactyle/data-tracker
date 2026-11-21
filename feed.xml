@@ -3,10 +3,32 @@
   <id>https://jactyle.github.io/data-tracker/</id>
   <title>Movie Tracker daily report</title>
   <subtitle>The biggest moves, and the films that appeared or disappeared, each day.</subtitle>
-  <updated>2026-11-20T00:00:00Z</updated>
+  <updated>2026-11-21T00:00:00Z</updated>
   <link rel="alternate" href="https://jactyle.github.io/data-tracker/"/>
   <link rel="self" type="application/atom+xml" href="https://jactyle.github.io/data-tracker/feed.xml"/>
   <author><name>Movie Tracker</name></author>
+  <entry>
+    <id>https://jactyle.github.io/data-tracker/#2026-11-21</id>
+    <title>Report for 2026-11-21</title>
+    <updated>2026-11-21T00:00:00Z</updated>
+    <link rel="alternate" href="https://jactyle.github.io/data-tracker/"/>
+    <summary>10 moves, 0 appeared, 0 disappeared</summary>
+    <content type="text">Movie tracker report for 2026-11-21
+
+Biggest moves since the previous run:
+- Barbie (wikipedia): views 3,196 -&gt; 2,413 (-24.5%)
+- Interstellar (wikipedia): views 7,879 -&gt; 9,251 (+17.4%)
+- Parasite (wikipedia): views 2,457 -&gt; 2,875 (+17.0%)
+- Avengers: Doomsday (wikipedia): views 44,516 -&gt; 38,820 (-12.8%)
+- Dune: Part Three (wikipedia): views 15,653 -&gt; 13,793 (-11.9%)
+- The Odyssey (imdb): votes 579,974 -&gt; 582,185 (+0.4%)
+- Spider-Man: Brand New Day (imdb): votes 390,560 -&gt; 391,200 (+0.2%)
+- Obsession (imdb): votes 436,230 -&gt; 436,941 (+0.2%)
+- Backrooms (imdb): votes 253,850 -&gt; 254,194 (+0.1%)
+- Project Hail Mary (imdb): votes 606,240 -&gt; 606,791 (+0.1%)
+Appeared: none
+Disappeared: none</content>
+  </entry>
   <entry>
     <id>https://jactyle.github.io/data-tracker/#2026-11-20</id>
     <title>Report for 2026-11-20</title>
