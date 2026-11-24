@@ -17,3 +17,5 @@ date,run_time,source,ok,count,error
 2026-11-21,2026-11-21T20:31:19Z,wikipedia,true,18,
 2026-11-22,2026-11-22T20:43:14Z,imdb,true,24,
 2026-11-22,2026-11-22T20:43:14Z,wikipedia,true,18,
+2026-11-24,2026-11-24T01:40:26Z,imdb,true,24,
+2026-11-24,2026-11-24T01:40:26Z,wikipedia,false,0,SourceError: views for 20261123 are not published yet
