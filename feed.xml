@@ -12,18 +12,22 @@
     <title>Report for 2026-11-24</title>
     <updated>2026-11-24T00:00:00Z</updated>
     <link rel="alternate" href="https://jactyle.github.io/data-tracker/"/>
-    <summary>5 moves, 0 appeared, 0 disappeared</summary>
+    <summary>10 moves, 0 appeared, 0 disappeared</summary>
     <content type="text">Movie tracker report for 2026-11-24
 
 Biggest moves since the previous run:
-- The Odyssey (imdb): votes 585,220 -&gt; 589,034 (+0.7%)
-- Obsession (imdb): votes 437,886 -&gt; 439,062 (+0.3%)
-- Spider-Man: Brand New Day (imdb): votes 391,978 -&gt; 392,980 (+0.3%)
-- Backrooms (imdb): votes 254,650 -&gt; 255,238 (+0.2%)
-- Project Hail Mary (imdb): votes 607,539 -&gt; 608,520 (+0.2%)
+- Avengers: Doomsday (wikipedia): views 36,675 -&gt; 116,097 (+216.6%)
+- Interstellar (wikipedia): views 12,054 -&gt; 8,107 (-32.7%)
+- Wicked: For Good (wikipedia): views 2,120 -&gt; 2,761 (+30.2%)
+- Inception (wikipedia): views 4,944 -&gt; 4,155 (-16.0%)
+- Zootopia 2 (wikipedia): views 3,303 -&gt; 2,860 (-13.4%)
+- The Odyssey (imdb): votes 585,220 -&gt; 591,850 (+1.1%)
+- Obsession (imdb): votes 437,886 -&gt; 439,970 (+0.5%)
+- Spider-Man: Brand New Day (imdb): votes 391,978 -&gt; 393,764 (+0.5%)
+- Backrooms (imdb): votes 254,650 -&gt; 255,692 (+0.4%)
+- Project Hail Mary (imdb): votes 607,539 -&gt; 609,305 (+0.3%)
 Appeared: none
-Disappeared: none
-Note: wikipedia returned no data today, so it was not compared.</content>
+Disappeared: none</content>
   </entry>
   <entry>
     <id>https://jactyle.github.io/data-tracker/#2026-11-22</id>
